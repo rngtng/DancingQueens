@@ -1,66 +1,96 @@
 
-#define MIN_TIME 10    // in milliseconds
-#define MAX_TIME 1000  // in milliseconds
+//// ------------------ Defaults -----------------------
+#define RANDOM_SLEEP_MIN     10  // in milliseconds
+#define RANDOM_SLEEP_MAX   1000  // in milliseconds
+#define RANDOM_SLEEP_STEPS  100  // in milliseconds
 
+#define RANDOM_LOOPS_MIN  1
+#define RANDOM_LOOPS_MAX 10
+
+//// ------------------ Patterns -----------------------
 // any number below zero get replaced by random from from 0 ... 255
-// <loops>, <delay>
-int p1[] = { 10, -1, 2, 0x00, 0x01};
-int p1[] = { 10, -1, 2, 0x00, 0x01};
-// int patternb[] = {0, 1, 0, 1, 0, 1};
-// int *patterns[] = { patterna, patternb }; 
+// { <loops>, <sleep>, <data length>, < ... data ... > }
+int p1[] = {
+  10,   -1, 2, 0x00, 0x01};
+int p2[] = {
+  1,  100, 16, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+int p3[] = {
+  1,  100,  8, 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
 
+int *patterns[] = {
+  p1, p2, p3 };
 
-
-//int patterns[1][] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 12, 13, 14, 15, 16, 100};
-int patterns[3][17] = {
-  {
-    0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  -1    }
-  ,  
-  
-  ,
-  {
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, -1    }
-};
-
-int current_pattern;
+//// ------------------ nothing to edit below here -----------------------
+int number_of_patterns = sizeof(patterns)/sizeof(int);
 int current_pos;
+int current_pattern;
+int current_loop;
 int current_size;
 
+//// ------------------ main -----------------------
 void setup() {
+  randomSeed(analogRead(0));
+
   // set the digital pin as output:
   DDRD = DDRD | B11111100;
   DDRB = DDRB | B00111111;
+
+  // turn all off
   set(0);
-  reset();
+
+  // turn all off
+  load_pattern(0);
 }
 
 void loop()
-{ 
-  int v = value(patterns[current_pattern][current_pos]);
-  int s = value(patterns[current_pattern][16]) * 10;
-  set(v);
-  delay(s);
+{
+  int value = positive_value_or_random(patterns[current_pattern][current_pos + 3]);
+  int sleep = positive_sleep_or_random(patterns[current_pattern][1]);
+  set(value);
+  delay(sleep);
   current_pos++;
-  if(current_pos > 15) reset();
+  if(current_pos > current_size) restart_loop();
 }
 
+//// -----------------------------------------
 void set(byte v) {
   PORTD = (((255 - v) << 6) & B11000000); //  | (PORTD & B0000011);
   PORTB = (((255 - v) >> 2) & B00111111);
 }
 
-void reset() {
+void restart_loop() {
   current_pos = 0;
-  current_pattern = 2;
-  current_size = sizeof(patterns[current_pattern])/sizeof(int);
+  current_loop--;
+  if(current_loop < 0) load_random_pattern();
 }
 
-int value(int i) {
-  if(i < 0) {
-    return random(255);
-  }
-  return i;
+// -------------------------------------------------------------------
+void load_random_pattern() {
+  load_pattern(random(number_of_patterns));
 }
 
+void load_pattern(int pattern_nr) {
+  current_pattern = pattern_nr;
+  current_loop    = positive_loop_or_random(patterns[current_pattern][0]);
+  current_size    = patterns[current_pattern][2];
+  restart_loop();
+}
+
+// -------------------------------------------------------------------
+int positive_value_or_random(int i) {
+  return (i >= 0) ? i : random(256);
+}
+
+int positive_loop_or_random(int i) {
+  return (i > 0) ?  i : random(RANDOM_LOOPS_MIN, RANDOM_LOOPS_MAX + 1);
+}
+
+int positive_sleep_or_random(int i) {
+  return (i > 0) ? i : random_sleep();
+}
+
+int random_sleep() {
+  return RANDOM_SLEEP_MIN + random((RANDOM_SLEEP_MAX - RANDOM_SLEEP_MIN) / RANDOM_SLEEP_STEPS) * RANDOM_SLEEP_STEPS;
+}
 
 
