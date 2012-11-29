@@ -1,4 +1,4 @@
-# DancingQueen
+# DancingQueens
 
 See the Arduino dancing with Stars (random possible)
 
@@ -7,7 +7,7 @@ See the Arduino dancing with Stars (random possible)
 </center>
 
 ## WTF?
-A simple arduino sequenzer to control a 8bit relay shield. It supports multiple patterns which are randomly choosen.
+A simple arduino sequenzer to control a 8 channel relay shield. It supports multiple patterns which are randomly choosen.
 Each pattern consits of a loop rate, a sleep time and the sequence data. Each bit of the data represents one channel.
 
 Any negative number will be replaced by a positive random value within the range of given boarders.

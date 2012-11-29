@@ -7,11 +7,10 @@
 #define RANDOM_SLEEP_MAX   1000  // in milliseconds
 #define RANDOM_SLEEP_STEPS  100  // in milliseconds
 
-#define RANDOM_DATA_MIN  0
-#define RANDOM_DATA_MAX 255
+#define CHANNELS 6
 
 //// ------------------ Patterns -----------------------
-// any number below zero get replaced by random from from 0 ... 255
+// any number below zero get replaced by random value within given range
 // { <loops>, <sleep>, <data length>, < ... data ... > }
 int p1[] = {
   10,   -1, 2, 0x00, 0x01};
@@ -81,7 +80,7 @@ void load_pattern(int pattern_nr) {
 
 // -------------------------------------------------------------------
 int positive_value_or_random(int i) {
-  return (i >= 0) ? i : random(RANDOM_DATA_MIN, RANDOM_DATA_MAX + 1);
+  return (i >= 0) ? i : random(0, 1 << CHANNELS);
 }
 
 int positive_loop_or_random(int i) {
