@@ -7,7 +7,7 @@
 #define RANDOM_SLEEP_MAX   1000  // in milliseconds
 #define RANDOM_SLEEP_STEPS  100  // in milliseconds
 
-#define CHANNELS 6
+#define CHANNELS 8
 
 //// ------------------ Patterns -----------------------
 // any number below zero get replaced by random value within given range
@@ -17,10 +17,12 @@ int p1[] = {
 int p2[] = {
   1,  100, 16, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
 int p3[] = {
-  1,  100,  8, 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+  2,  500,  8, 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+int p4[] = {
+  20,  500,  6, B00011000, B00100100, B01000010, B10000001, B01000010, B00100100};
 
 int *patterns[] = {
-  p1, p2, p3 };
+  p1, p2, p3, p4 };
 
 //// ------------------ nothing to edit below here -----------------------
 int number_of_patterns = sizeof(patterns)/sizeof(int);
@@ -35,20 +37,21 @@ void setup() {
 
   // set the digital pin as output:
   DDRD = DDRD | B11111100;
-  DDRB = DDRB | B00111111;
+  DDRH = DDRH | B01111000;
+  DDRB = DDRB | B1111111;
 
   // turn all off
   set(0);
 
   // turn all off
-  load_pattern(0);
+  load_pattern(3);
 }
 
 void loop()
 {
   int value = positive_value_or_random(patterns[current_pattern][current_pos + 3]);
   int sleep = positive_sleep_or_random(patterns[current_pattern][1]);
-  set(value);
+  setM(value);
   delay(sleep);
   current_pos++;
   if(current_pos > current_size) restart_loop();
@@ -59,6 +62,12 @@ void set(byte v) {
   PORTD = (((255 - v) << 6) & B11000000); //  | (PORTD & B0000011);
   PORTB = (((255 - v) >> 2) & B00111111);
 }
+
+void setM(byte v) {
+  PORTH = ((( v) << 3) & B01111000); //  | (PORTD & B0000011);
+  PORTB = ((( v)) & B11111111);
+}
+
 
 void restart_loop() {
   current_pos = 0;
